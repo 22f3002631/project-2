@@ -1,5 +1,5 @@
 import openai
-import anthropic
+import requests
 import os
 import logging
 import json
@@ -10,38 +10,51 @@ logger = logging.getLogger(__name__)
 
 class LLMIntegration:
     """Handles integration with LLM APIs for intelligent question processing"""
-    
+
     def __init__(self):
         self.openai_client = None
-        self.anthropic_client = None
-        
-        # Initialize clients if API keys are available
+        self.aipipe_client = None
+
+        # Initialize OpenAI client if API key is available
         if os.getenv('OPENAI_API_KEY'):
             openai.api_key = os.getenv('OPENAI_API_KEY')
             self.openai_client = openai
-        
-        if os.getenv('ANTHROPIC_API_KEY'):
-            self.anthropic_client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+            logger.info("OpenAI client initialized")
+
+        # Initialize aipipe client if API key and URL are available
+        if os.getenv('AIPIPE_API_KEY') and os.getenv('AIPIPE_BASE_URL'):
+            self.aipipe_client = {
+                'api_key': os.getenv('AIPIPE_API_KEY'),
+                'base_url': os.getenv('AIPIPE_BASE_URL')
+            }
+            logger.info("Aipipe client initialized")
+
+        if not self.openai_client and not self.aipipe_client:
+            logger.warning("No LLM clients available - using fallback responses only")
     
     def process_question(self, question: str, uploaded_files: Dict[str, str]) -> Any:
         """Process a question using LLM to understand intent and generate response"""
         try:
             # If no LLM clients available, return basic response
-            if not self.openai_client and not self.anthropic_client:
+            if not self.openai_client and not self.aipipe_client:
                 return self._fallback_response(question, uploaded_files)
-            
+
             # Analyze the question to understand what's needed
             analysis_prompt = self._create_analysis_prompt(question, uploaded_files)
-            
-            # Get LLM response
+
+            # Get LLM response - try OpenAI first, then aipipe
+            response = None
             if self.openai_client:
                 response = self._query_openai(analysis_prompt)
+            elif self.aipipe_client:
+                response = self._query_aipipe(analysis_prompt)
+
+            if response:
+                # Process the LLM response and execute the analysis
+                return self._execute_analysis_plan(response, uploaded_files)
             else:
-                response = self._query_anthropic(analysis_prompt)
-            
-            # Process the LLM response and execute the analysis
-            return self._execute_analysis_plan(response, uploaded_files)
-            
+                return self._fallback_response(question, uploaded_files)
+
         except Exception as e:
             logger.error(f"Error in LLM processing: {str(e)}")
             return self._fallback_response(question, uploaded_files)
@@ -90,22 +103,41 @@ class LLMIntegration:
             logger.error(f"Error querying OpenAI: {str(e)}")
             return self._default_analysis_plan()
     
-    def _query_anthropic(self, prompt: str) -> Dict[str, Any]:
-        """Query Anthropic API"""
+    def _query_aipipe(self, prompt: str) -> Dict[str, Any]:
+        """Query aipipe API"""
         try:
-            response = self.anthropic_client.messages.create(
-                model="claude-3-sonnet-20240229",
-                max_tokens=1000,
-                messages=[
+            headers = {
+                'Authorization': f'Bearer {self.aipipe_client["api_key"]}',
+                'Content-Type': 'application/json'
+            }
+
+            payload = {
+                'model': 'gpt-3.5-turbo',  # or whatever model aipipe supports
+                'messages': [
+                    {"role": "system", "content": "You are a helpful data analysis assistant. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                'max_tokens': 1000,
+                'temperature': 0.1
+            }
+
+            response = requests.post(
+                f'{self.aipipe_client["base_url"]}/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
             )
-            
-            content = response.content[0].text
-            return json.loads(content)
-            
+
+            if response.status_code == 200:
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+                return json.loads(content)
+            else:
+                logger.error(f"Aipipe API error: {response.status_code} - {response.text}")
+                return self._default_analysis_plan()
+
         except Exception as e:
-            logger.error(f"Error querying Anthropic: {str(e)}")
+            logger.error(f"Error querying aipipe: {str(e)}")
             return self._default_analysis_plan()
     
     def _execute_analysis_plan(self, plan: Dict[str, Any], uploaded_files: Dict[str, str]) -> Any:
