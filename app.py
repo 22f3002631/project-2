@@ -28,6 +28,20 @@ data_visualization = DataVisualization()
 question_processor = QuestionProcessor()
 llm_integration = LLMIntegration()
 
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint providing API information"""
+    return jsonify({
+        "service": "Data Analyst Agent",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "api": "/api/ (POST with questions.txt file)",
+            "documentation": "Submit questions.txt file to /api/ endpoint"
+        },
+        "version": "1.0.0"
+    })
+
 @app.route('/api/', methods=['POST'])
 def analyze_data():
     """Main API endpoint for data analysis requests"""
@@ -305,6 +319,11 @@ def handle_file_analysis(question_data, uploaded_files):
             results.append(analysis_result)
     
     return results
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    """Submit endpoint for exam portal compatibility"""
+    return analyze_data()
 
 @app.route('/health', methods=['GET'])
 def health_check():
