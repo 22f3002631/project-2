@@ -13,8 +13,7 @@ from data_analysis import DataAnalysis
 from data_visualization import DataVisualization
 from question_processor import QuestionProcessor
 from llm_integration import LLMIntegration
-# Temporarily disable intelligent orchestrator to fix deployment
-# from intelligent_orchestrator import IntelligentOrchestrator
+# Intelligent orchestrator disabled for deployment stability
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +28,7 @@ data_analysis = DataAnalysis()
 data_visualization = DataVisualization()
 question_processor = QuestionProcessor()
 llm_integration = LLMIntegration()
-# Temporarily disable intelligent orchestrator to fix deployment
-# intelligent_orchestrator = IntelligentOrchestrator()
+# Intelligent orchestrator disabled for deployment stability
 
 @app.route('/', methods=['GET', 'POST'])
 def root():
