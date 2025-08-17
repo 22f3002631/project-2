@@ -28,19 +28,39 @@ data_visualization = DataVisualization()
 question_processor = QuestionProcessor()
 llm_integration = LLMIntegration()
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'POST'])
 def root():
-    """Root endpoint providing API information"""
-    return jsonify({
-        "service": "Data Analyst Agent",
-        "status": "running",
-        "endpoints": {
-            "health": "/health",
-            "api": "/api/ (POST with questions.txt file)",
-            "documentation": "Submit questions.txt file to /api/ endpoint"
-        },
-        "version": "1.0.0"
-    })
+    """Root endpoint providing API information or handling file uploads"""
+    if request.method == 'POST':
+        # Check if this is a file upload request
+        if 'questions.txt' in request.files:
+            # Redirect to the API endpoint
+            return analyze_data()
+        else:
+            # Return API information for POST requests without files
+            return jsonify({
+                "service": "Data Analyst Agent",
+                "status": "running",
+                "endpoints": {
+                    "health": "/health",
+                    "api": "/api/ (POST with questions.txt file)",
+                    "documentation": "Submit questions.txt file to /api/ endpoint"
+                },
+                "version": "1.0.0",
+                "message": "Please submit questions.txt file to /api/ endpoint"
+            })
+    else:
+        # GET request - return API information
+        return jsonify({
+            "service": "Data Analyst Agent",
+            "status": "running",
+            "endpoints": {
+                "health": "/health",
+                "api": "/api/ (POST with questions.txt file)",
+                "documentation": "Submit questions.txt file to /api/ endpoint"
+            },
+            "version": "1.0.0"
+        })
 
 @app.route('/api/', methods=['POST'])
 def analyze_data():
