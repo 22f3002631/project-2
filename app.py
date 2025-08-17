@@ -13,7 +13,8 @@ from data_analysis import DataAnalysis
 from data_visualization import DataVisualization
 from question_processor import QuestionProcessor
 from llm_integration import LLMIntegration
-from intelligent_orchestrator import IntelligentOrchestrator
+# Temporarily disable intelligent orchestrator to fix deployment
+# from intelligent_orchestrator import IntelligentOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +29,8 @@ data_analysis = DataAnalysis()
 data_visualization = DataVisualization()
 question_processor = QuestionProcessor()
 llm_integration = LLMIntegration()
-intelligent_orchestrator = IntelligentOrchestrator()
+# Temporarily disable intelligent orchestrator to fix deployment
+# intelligent_orchestrator = IntelligentOrchestrator()
 
 @app.route('/', methods=['GET', 'POST'])
 def root():
@@ -162,46 +164,8 @@ def process_analysis_request(questions_content, uploaded_files, start_time):
     """Process the analysis request and return results"""
 
     try:
-        # First try the intelligent orchestrator for comprehensive analysis
-        try:
-            logger.info("Attempting intelligent analysis")
-
-            # Simple timeout using threading (more portable than signal)
-            import threading
-            import time
-
-            result_container = [None]
-            exception_container = [None]
-
-            def run_intelligent_analysis():
-                try:
-                    result = intelligent_orchestrator.process_analysis_request(
-                        questions_content, uploaded_files
-                    )
-                    result_container[0] = result
-                except Exception as e:
-                    exception_container[0] = e
-
-            # Start analysis in separate thread
-            analysis_thread = threading.Thread(target=run_intelligent_analysis)
-            analysis_thread.daemon = True
-            analysis_thread.start()
-
-            # Wait up to 30 seconds
-            analysis_thread.join(timeout=30)
-
-            if analysis_thread.is_alive():
-                logger.warning("Intelligent analysis timed out, falling back to legacy system")
-            elif exception_container[0]:
-                logger.warning(f"Intelligent orchestrator error: {str(exception_container[0])}")
-            elif result_container[0] and not (isinstance(result_container[0], dict) and 'error' in result_container[0]):
-                logger.info("Using intelligent orchestrator result")
-                return result_container[0]
-            else:
-                logger.warning("Intelligent orchestrator returned error, falling back to legacy system")
-
-        except Exception as e:
-            logger.warning(f"Intelligent orchestrator setup failed, falling back to legacy system: {str(e)}")
+        # Intelligent orchestrator temporarily disabled to fix deployment issues
+        logger.info("Using legacy question processing system")
 
         # Fallback to legacy question processing system
         logger.info("Using legacy question processing system")

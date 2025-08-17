@@ -192,7 +192,7 @@ class FlexibleDataLoader:
                 'case_id': range(1, 101),
                 'court': ['High Court'] * 100,
                 'year': [2020 + (i % 5) for i in range(100)],
-                'category': ['Civil', 'Criminal', 'Constitutional'][i % 3] for i in range(100)
+                'category': [['Civil', 'Criminal', 'Constitutional'][i % 3] for i in range(100)]
             }
             
             return pd.DataFrame(sample_data)
