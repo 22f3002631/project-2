@@ -108,7 +108,7 @@ def test_aipipe_api():
         
         start_time = time.time()
         response = requests.post(
-            'https://aipipe.iitm.ac.in/v1/chat/completions',
+            'https://aipipe.org/v1/chat/completions',
             headers=headers,
             json=payload,
             timeout=30

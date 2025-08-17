@@ -138,8 +138,8 @@ class LLMIntegration:
                 'temperature': 0.1
             }
 
-            # Use standard Aipipe endpoint (assuming it follows OpenAI-compatible API)
-            aipipe_url = 'https://aipipe.iitm.ac.in/v1/chat/completions'
+            # Use correct Aipipe endpoint based on aipipe.org domain
+            aipipe_url = 'https://aipipe.org/v1/chat/completions'
             response = requests.post(
                 aipipe_url,
                 headers=headers,
