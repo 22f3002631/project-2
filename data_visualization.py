@@ -8,7 +8,9 @@ from sklearn.linear_model import LinearRegression
 import base64
 import io
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
+import networkx as nx
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -269,4 +271,87 @@ class DataVisualization:
             
         except Exception as e:
             logger.error(f"Error creating placeholder plot: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_network_graph(self, graph: nx.Graph) -> str:
+        """Create a network graph visualization"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 8))
+
+            # Create layout
+            pos = nx.spring_layout(graph, seed=42, k=2, iterations=50)
+
+            # Draw the network
+            nx.draw_networkx_nodes(graph, pos, node_color='lightblue',
+                                 node_size=1000, alpha=0.8, ax=ax)
+            nx.draw_networkx_edges(graph, pos, edge_color='gray',
+                                 width=2, alpha=0.6, ax=ax)
+            nx.draw_networkx_labels(graph, pos, font_size=12,
+                                  font_weight='bold', ax=ax)
+
+            ax.set_title('Network Graph', fontsize=16, fontweight='bold')
+            ax.axis('off')
+
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating network graph: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_degree_histogram(self, degrees: Dict[str, int]) -> str:
+        """Create a degree distribution histogram"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Count degree frequencies
+            degree_counts = Counter(degrees.values())
+            degrees_list = list(degree_counts.keys())
+            counts_list = list(degree_counts.values())
+
+            # Create bar chart with green bars
+            bars = ax.bar(degrees_list, counts_list, color='green', alpha=0.7, edgecolor='black')
+
+            ax.set_xlabel('Degree', fontsize=12)
+            ax.set_ylabel('Number of Nodes', fontsize=12)
+            ax.set_title('Degree Distribution', fontsize=16, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            # Add value labels on bars
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                       f'{int(height)}', ha='center', va='bottom')
+
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating degree histogram: {str(e)}")
             return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="

@@ -191,6 +191,8 @@ def process_single_question(question_data, uploaded_files, start_time):
         return handle_wikipedia_questions(question_data, uploaded_files)
     elif question_type == 'database_analysis':
         return handle_database_questions(question_data, uploaded_files)
+    elif question_type == 'network_analysis':
+        return handle_network_questions(question_data, uploaded_files)
     elif question_type == 'file_analysis':
         return handle_file_analysis(question_data, uploaded_files)
     else:
@@ -305,24 +307,66 @@ def handle_database_questions(question_data, uploaded_files):
         "Plot the year and # of days of delay from the above question as a scatterplot with a regression line. Encode as a base64 data URI under 100,000 characters": "data:image/webp:base64,placeholder"
     }
 
+def handle_network_questions(question_data, uploaded_files):
+    """Handle network analysis questions"""
+
+    try:
+        # Load edges.csv file
+        import pandas as pd
+        edges_df = pd.read_csv('edges.csv')
+        logger.info(f"Loaded network data with {len(edges_df)} edges")
+
+        # Perform network analysis
+        network_results = data_analysis.analyze_network(edges_df)
+
+        if not network_results:
+            logger.error("Network analysis failed")
+            return {"error": "Network analysis failed"}
+
+        # Create visualizations
+        network_graph = data_visualization.create_network_graph(network_results['graph'])
+        degree_histogram = data_visualization.create_degree_histogram(network_results['degrees'])
+
+        # Return results in expected format
+        return {
+            "edge_count": network_results['edge_count'],
+            "highest_degree_node": network_results['highest_degree_node'],
+            "average_degree": network_results['average_degree'],
+            "density": network_results['density'],
+            "shortest_path_alice_eve": network_results['shortest_path_alice_eve'],
+            "network_graph": network_graph.replace("data:image/png;base64,", ""),
+            "degree_histogram": degree_histogram.replace("data:image/png;base64,", "")
+        }
+
+    except Exception as e:
+        logger.error(f"Error in network analysis: {str(e)}")
+        return {"error": f"Network analysis failed: {str(e)}"}
+
 def handle_file_analysis(question_data, uploaded_files):
     """Handle analysis of uploaded files"""
-    
+
     # Process uploaded CSV, JSON, or other data files
     results = []
-    
+
     for filename, filepath in uploaded_files.items():
         if filename.endswith('.csv'):
             data = data_sourcing.load_csv(filepath)
             # Perform analysis based on question
             analysis_result = data_analysis.analyze_dataframe(data, question_data.get('text', ''))
             results.append(analysis_result)
-    
+
     return results
 
-@app.route('/submit', methods=['POST'])
+@app.route('/submit', methods=['GET', 'POST'])
 def submit():
     """Submit endpoint for exam portal compatibility"""
+    if request.method == 'GET':
+        return jsonify({
+            "message": "Submit endpoint ready",
+            "method": "POST",
+            "required": "questions.txt file",
+            "status": "available"
+        })
     return analyze_data()
 
 @app.route('/health', methods=['GET'])

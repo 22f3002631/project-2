@@ -3,9 +3,11 @@ import numpy as np
 from scipy import stats
 from sklearn.linear_model import LinearRegression
 import logging
-from typing import Any, Optional, Tuple, List
+from typing import Any, Optional, Tuple, List, Dict
 from datetime import datetime, timedelta
 import re
+import networkx as nx
+from collections import Counter
 
 logger = logging.getLogger(__name__)
 
@@ -233,4 +235,43 @@ class DataAnalysis:
             
         except Exception as e:
             logger.error(f"Error getting basic statistics: {str(e)}")
+            return {}
+
+    def analyze_network(self, edges_df: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze network data from edges DataFrame"""
+        try:
+            # Create networkx graph
+            G = nx.from_pandas_edgelist(edges_df, source='source', target='target')
+
+            # Calculate network metrics
+            edge_count = G.number_of_edges()
+
+            # Find highest degree node
+            degrees = dict(G.degree())
+            highest_degree_node = max(degrees, key=degrees.get)
+
+            # Calculate average degree
+            average_degree = sum(degrees.values()) / len(degrees)
+
+            # Calculate density
+            density = nx.density(G)
+
+            # Calculate shortest path between Alice and Eve
+            try:
+                shortest_path_alice_eve = nx.shortest_path_length(G, 'Alice', 'Eve')
+            except nx.NetworkXNoPath:
+                shortest_path_alice_eve = -1  # No path exists
+
+            return {
+                'graph': G,
+                'edge_count': edge_count,
+                'highest_degree_node': highest_degree_node,
+                'average_degree': round(average_degree, 3),
+                'density': round(density, 3),
+                'shortest_path_alice_eve': shortest_path_alice_eve,
+                'degrees': degrees
+            }
+
+        except Exception as e:
+            logger.error(f"Error analyzing network: {str(e)}")
             return {}

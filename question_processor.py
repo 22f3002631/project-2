@@ -21,6 +21,16 @@ class QuestionProcessor:
             r'judgments?.*dataset',
             r'parquet.*files?'
         ]
+
+        self.network_patterns = [
+            r'network',
+            r'edges\.csv',
+            r'undirected.*network',
+            r'degree',
+            r'shortest.*path',
+            r'network.*density',
+            r'network.*graph'
+        ]
         
         self.analysis_patterns = {
             'count': [r'how many', r'count', r'number of'],
@@ -40,11 +50,15 @@ class QuestionProcessor:
             # Check if it's the Wikipedia example
             if self._is_wikipedia_question(content):
                 return self._parse_wikipedia_questions(content)
-            
+
             # Check if it's the database example
             elif self._is_database_question(content):
                 return self._parse_database_questions(content)
-            
+
+            # Check if it's a network analysis question
+            elif self._is_network_question(content):
+                return self._parse_network_questions(content)
+
             # Generic question parsing
             else:
                 return self._parse_generic_questions(content)
@@ -209,3 +223,24 @@ class QuestionProcessor:
         
         # Default to array for multiple questions, single value for one question
         return 'array' if len(questions) > 1 else 'single'
+
+    def _is_network_question(self, content: str) -> bool:
+        """Check if the content contains network analysis questions"""
+        content_lower = content.lower()
+        return any(re.search(pattern, content_lower) for pattern in self.network_patterns)
+
+    def _parse_network_questions(self, content: str) -> List[Dict[str, Any]]:
+        """Parse network analysis questions"""
+        questions = []
+
+        # This is a network analysis question
+        questions.append({
+            'type': 'network_analysis',
+            'content': content,
+            'data_source': 'edges.csv',
+            'analysis_type': 'network_metrics',
+            'visualization_required': True,
+            'expected_format': 'object'
+        })
+
+        return questions
