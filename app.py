@@ -313,8 +313,29 @@ def handle_network_questions(question_data, uploaded_files):
     try:
         # Load edges.csv file
         import pandas as pd
-        edges_df = pd.read_csv('edges.csv')
-        logger.info(f"Loaded network data with {len(edges_df)} edges")
+        import os
+
+        # Try different possible paths for edges.csv
+        possible_paths = [
+            'edges.csv',
+            os.path.join(os.path.dirname(__file__), 'edges.csv'),
+            '/app/edges.csv'
+        ]
+
+        edges_df = None
+        for path in possible_paths:
+            try:
+                if os.path.exists(path):
+                    edges_df = pd.read_csv(path)
+                    logger.info(f"Loaded network data from {path} with {len(edges_df)} edges")
+                    break
+            except Exception as e:
+                logger.warning(f"Failed to load from {path}: {str(e)}")
+                continue
+
+        if edges_df is None:
+            logger.error("Could not find edges.csv file")
+            return {"error": "edges.csv file not found"}
 
         # Perform network analysis
         network_results = data_analysis.analyze_network(edges_df)
