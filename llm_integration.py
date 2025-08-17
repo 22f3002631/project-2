@@ -21,11 +21,10 @@ class LLMIntegration:
             self.openai_client = openai
             logger.info("OpenAI client initialized")
 
-        # Initialize aipipe client if API key and URL are available
-        if os.getenv('AIPIPE_API_KEY') and os.getenv('AIPIPE_BASE_URL'):
+        # Initialize aipipe client if API key is available
+        if os.getenv('AIPIPE_API_KEY'):
             self.aipipe_client = {
-                'api_key': os.getenv('AIPIPE_API_KEY'),
-                'base_url': os.getenv('AIPIPE_BASE_URL')
+                'api_key': os.getenv('AIPIPE_API_KEY')
             }
             logger.info("Aipipe client initialized")
 
@@ -86,19 +85,37 @@ class LLMIntegration:
     def _query_openai(self, prompt: str) -> Dict[str, Any]:
         """Query OpenAI API"""
         try:
-            response = self.openai_client.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
+            # Use requests to make direct API call for better error handling
+            headers = {
+                'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
+                'Content-Type': 'application/json'
+            }
+
+            payload = {
+                'model': 'gpt-3.5-turbo',
+                'messages': [
                     {"role": "system", "content": "You are a helpful data analysis assistant. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=1000,
-                temperature=0.1
+                'max_tokens': 1000,
+                'temperature': 0.1
+            }
+
+            response = requests.post(
+                'https://api.openai.com/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
             )
-            
-            content = response.choices[0].message.content
-            return json.loads(content)
-            
+
+            if response.status_code == 200:
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+                return json.loads(content)
+            else:
+                logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                return self._default_analysis_plan()
+
         except Exception as e:
             logger.error(f"Error querying OpenAI: {str(e)}")
             return self._default_analysis_plan()
@@ -121,8 +138,10 @@ class LLMIntegration:
                 'temperature': 0.1
             }
 
+            # Use standard Aipipe endpoint (assuming it follows OpenAI-compatible API)
+            aipipe_url = 'https://aipipe.iitm.ac.in/v1/chat/completions'
             response = requests.post(
-                f'{self.aipipe_client["base_url"]}/chat/completions',
+                aipipe_url,
                 headers=headers,
                 json=payload,
                 timeout=30
