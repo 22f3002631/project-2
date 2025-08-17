@@ -120,7 +120,7 @@ Expected response:
 
 ### API Test with Sample Question
 ```bash
-curl -X POST https://your-app-name.onrender.com/api/ \
+curl -X POST https://project-2-nn6u.onrender.com/api/ \
   -F "questions.txt=@sample_questions/wikipedia_example.txt"
 ```
 

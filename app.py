@@ -13,6 +13,7 @@ from data_analysis import DataAnalysis
 from data_visualization import DataVisualization
 from question_processor import QuestionProcessor
 from llm_integration import LLMIntegration
+from intelligent_orchestrator import IntelligentOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +28,7 @@ data_analysis = DataAnalysis()
 data_visualization = DataVisualization()
 question_processor = QuestionProcessor()
 llm_integration = LLMIntegration()
+intelligent_orchestrator = IntelligentOrchestrator()
 
 @app.route('/', methods=['GET', 'POST'])
 def root():
@@ -160,6 +162,25 @@ def process_analysis_request(questions_content, uploaded_files, start_time):
     """Process the analysis request and return results"""
 
     try:
+        # First try the intelligent orchestrator for comprehensive analysis
+        try:
+            logger.info("Attempting intelligent analysis")
+            intelligent_result = intelligent_orchestrator.process_analysis_request(
+                questions_content, uploaded_files
+            )
+
+            # If intelligent analysis succeeds and provides meaningful results, use it
+            if intelligent_result and not (isinstance(intelligent_result, dict) and 'error' in intelligent_result):
+                logger.info("Using intelligent orchestrator result")
+                return intelligent_result
+            else:
+                logger.warning("Intelligent orchestrator returned error, falling back to legacy system")
+        except Exception as e:
+            logger.warning(f"Intelligent orchestrator failed, falling back to legacy system: {str(e)}")
+
+        # Fallback to legacy question processing system
+        logger.info("Using legacy question processing system")
+
         # Parse questions using our question processor
         parsed_questions = question_processor.parse_questions(questions_content)
         logger.info(f"Parsed {len(parsed_questions)} question(s)")
