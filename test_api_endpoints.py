@@ -105,12 +105,12 @@ def test_aipipe_api_detailed():
     
     print(f"API Key: {api_key[:20]}...{api_key[-10:]}")
     
-    # Test multiple possible endpoints
+    # Test multiple possible endpoints based on documentation
     endpoints_to_test = [
+        'https://aipipe.org/openrouter/v1/chat/completions',
         'https://aipipe.org/v1/chat/completions',
         'https://aipipe.org/api/v1/chat/completions',
-        'https://api.aipipe.org/v1/chat/completions',
-        'https://aipipe.org/chat/completions'
+        'https://api.aipipe.org/v1/chat/completions'
     ]
     
     headers = {

@@ -138,8 +138,8 @@ class LLMIntegration:
                 'temperature': 0.1
             }
 
-            # Use correct Aipipe endpoint based on aipipe.org domain
-            aipipe_url = 'https://aipipe.org/v1/chat/completions'
+            # Use correct Aipipe endpoint based on documentation
+            aipipe_url = 'https://aipipe.org/openrouter/v1/chat/completions'
             response = requests.post(
                 aipipe_url,
                 headers=headers,
