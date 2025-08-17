@@ -275,3 +275,69 @@ class DataAnalysis:
         except Exception as e:
             logger.error(f"Error analyzing network: {str(e)}")
             return {}
+
+    def analyze_sales(self, sales_df: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze sales data from DataFrame"""
+        try:
+            # Calculate total sales
+            total_sales = sales_df['sales'].sum()
+
+            # Find top region by total sales
+            region_sales = sales_df.groupby('region')['sales'].sum()
+            top_region = region_sales.idxmax()
+
+            # Calculate correlation between day of month and sales
+            sales_df['day'] = pd.to_datetime(sales_df['date']).dt.day
+            day_sales_correlation = sales_df['day'].corr(sales_df['sales'])
+
+            # Calculate median sales
+            median_sales = sales_df['sales'].median()
+
+            # Calculate total sales tax (10%)
+            total_sales_tax = total_sales * 0.1
+
+            return {
+                'data': sales_df,
+                'total_sales': int(total_sales),
+                'top_region': top_region,
+                'day_sales_correlation': round(day_sales_correlation, 10),
+                'median_sales': int(median_sales),
+                'total_sales_tax': int(total_sales_tax),
+                'region_sales': region_sales
+            }
+
+        except Exception as e:
+            logger.error(f"Error analyzing sales: {str(e)}")
+            return {}
+
+    def analyze_weather(self, weather_df: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze weather data from DataFrame"""
+        try:
+            # Calculate average temperature
+            average_temp_c = weather_df['temperature_c'].mean()
+
+            # Find date with maximum precipitation
+            max_precip_idx = weather_df['precip_mm'].idxmax()
+            max_precip_date = weather_df.loc[max_precip_idx, 'date']
+
+            # Find minimum temperature
+            min_temp_c = weather_df['temperature_c'].min()
+
+            # Calculate correlation between temperature and precipitation
+            temp_precip_correlation = weather_df['temperature_c'].corr(weather_df['precip_mm'])
+
+            # Calculate average precipitation
+            average_precip_mm = weather_df['precip_mm'].mean()
+
+            return {
+                'data': weather_df,
+                'average_temp_c': round(average_temp_c, 1),
+                'max_precip_date': max_precip_date,
+                'min_temp_c': int(min_temp_c),
+                'temp_precip_correlation': round(temp_precip_correlation, 10),
+                'average_precip_mm': round(average_precip_mm, 1)
+            }
+
+        except Exception as e:
+            logger.error(f"Error analyzing weather: {str(e)}")
+            return {}

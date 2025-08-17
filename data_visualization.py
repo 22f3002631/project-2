@@ -355,3 +355,155 @@ class DataVisualization:
         except Exception as e:
             logger.error(f"Error creating degree histogram: {str(e)}")
             return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_sales_bar_chart(self, region_sales: Dict[str, float]) -> str:
+        """Create a bar chart of sales by region"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            regions = list(region_sales.keys())
+            sales = list(region_sales.values())
+
+            # Create bar chart with blue bars
+            bars = ax.bar(regions, sales, color='blue', alpha=0.7, edgecolor='black')
+
+            ax.set_xlabel('Region', fontsize=12)
+            ax.set_ylabel('Total Sales', fontsize=12)
+            ax.set_title('Total Sales by Region', fontsize=16, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            # Add value labels on bars
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                       f'{int(height)}', ha='center', va='bottom')
+
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating sales bar chart: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_cumulative_sales_chart(self, sales_df) -> str:
+        """Create a cumulative sales line chart"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Sort by date and calculate cumulative sales
+            sales_df_sorted = sales_df.sort_values('date')
+            sales_df_sorted['cumulative_sales'] = sales_df_sorted['sales'].cumsum()
+
+            # Create line chart with red line
+            ax.plot(sales_df_sorted['date'], sales_df_sorted['cumulative_sales'],
+                   color='red', linewidth=2, marker='o')
+
+            ax.set_xlabel('Date', fontsize=12)
+            ax.set_ylabel('Cumulative Sales', fontsize=12)
+            ax.set_title('Cumulative Sales Over Time', fontsize=16, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            # Rotate x-axis labels for better readability
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating cumulative sales chart: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_temperature_line_chart(self, weather_df) -> str:
+        """Create a temperature over time line chart"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Create line chart with red line
+            ax.plot(weather_df['date'], weather_df['temperature_c'],
+                   color='red', linewidth=2, marker='o')
+
+            ax.set_xlabel('Date', fontsize=12)
+            ax.set_ylabel('Temperature (°C)', fontsize=12)
+            ax.set_title('Temperature Over Time', fontsize=16, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            # Rotate x-axis labels for better readability
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating temperature line chart: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    def create_precipitation_histogram(self, weather_df) -> str:
+        """Create a precipitation histogram"""
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+            # Create histogram with orange bars
+            ax.hist(weather_df['precip_mm'], bins=5, color='orange',
+                   alpha=0.7, edgecolor='black')
+
+            ax.set_xlabel('Precipitation (mm)', fontsize=12)
+            ax.set_ylabel('Frequency', fontsize=12)
+            ax.set_title('Precipitation Distribution', fontsize=16, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            plt.tight_layout()
+
+            # Convert to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight',
+                       dpi=100, facecolor='white')
+            buffer.seek(0)
+
+            img_data = base64.b64encode(buffer.getvalue()).decode()
+            data_uri = f"data:image/png;base64,{img_data}"
+
+            plt.close(fig)
+            buffer.close()
+
+            return data_uri
+
+        except Exception as e:
+            logger.error(f"Error creating precipitation histogram: {str(e)}")
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="

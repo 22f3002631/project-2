@@ -31,6 +31,26 @@ class QuestionProcessor:
             r'network.*density',
             r'network.*graph'
         ]
+
+        self.sales_patterns = [
+            r'sample-sales\.csv',
+            r'sales.*analysis',
+            r'total.*sales',
+            r'region.*sales',
+            r'sales.*correlation',
+            r'sales.*tax',
+            r'cumulative.*sales'
+        ]
+
+        self.weather_patterns = [
+            r'sample-weather\.csv',
+            r'weather.*analysis',
+            r'temperature',
+            r'precipitation',
+            r'temp.*correlation',
+            r'average.*temp',
+            r'precip.*histogram'
+        ]
         
         self.analysis_patterns = {
             'count': [r'how many', r'count', r'number of'],
@@ -58,6 +78,14 @@ class QuestionProcessor:
             # Check if it's a network analysis question
             elif self._is_network_question(content):
                 return self._parse_network_questions(content)
+
+            # Check if it's a sales analysis question
+            elif self._is_sales_question(content):
+                return self._parse_sales_questions(content)
+
+            # Check if it's a weather analysis question
+            elif self._is_weather_question(content):
+                return self._parse_weather_questions(content)
 
             # Generic question parsing
             else:
@@ -239,6 +267,48 @@ class QuestionProcessor:
             'content': content,
             'data_source': 'edges.csv',
             'analysis_type': 'network_metrics',
+            'visualization_required': True,
+            'expected_format': 'object'
+        })
+
+        return questions
+
+    def _is_sales_question(self, content: str) -> bool:
+        """Check if the content contains sales analysis questions"""
+        content_lower = content.lower()
+        return any(re.search(pattern, content_lower) for pattern in self.sales_patterns)
+
+    def _parse_sales_questions(self, content: str) -> List[Dict[str, Any]]:
+        """Parse sales analysis questions"""
+        questions = []
+
+        # This is a sales analysis question
+        questions.append({
+            'type': 'sales_analysis',
+            'content': content,
+            'data_source': 'sample-sales.csv',
+            'analysis_type': 'sales_metrics',
+            'visualization_required': True,
+            'expected_format': 'object'
+        })
+
+        return questions
+
+    def _is_weather_question(self, content: str) -> bool:
+        """Check if the content contains weather analysis questions"""
+        content_lower = content.lower()
+        return any(re.search(pattern, content_lower) for pattern in self.weather_patterns)
+
+    def _parse_weather_questions(self, content: str) -> List[Dict[str, Any]]:
+        """Parse weather analysis questions"""
+        questions = []
+
+        # This is a weather analysis question
+        questions.append({
+            'type': 'weather_analysis',
+            'content': content,
+            'data_source': 'sample-weather.csv',
+            'analysis_type': 'weather_metrics',
             'visualization_required': True,
             'expected_format': 'object'
         })

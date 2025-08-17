@@ -213,6 +213,10 @@ def process_single_question(question_data, uploaded_files, start_time):
         return handle_database_questions(question_data, uploaded_files)
     elif question_type == 'network_analysis':
         return handle_network_questions(question_data, uploaded_files)
+    elif question_type == 'sales_analysis':
+        return handle_sales_questions(question_data, uploaded_files)
+    elif question_type == 'weather_analysis':
+        return handle_weather_questions(question_data, uploaded_files)
     elif question_type == 'file_analysis':
         return handle_file_analysis(question_data, uploaded_files)
     else:
@@ -382,6 +386,118 @@ def handle_network_questions(question_data, uploaded_files):
     except Exception as e:
         logger.error(f"Error in network analysis: {str(e)}")
         return {"error": f"Network analysis failed: {str(e)}"}
+
+def handle_sales_questions(question_data, uploaded_files):
+    """Handle sales analysis questions"""
+
+    try:
+        # Load sample-sales.csv file
+        import pandas as pd
+        import os
+
+        # Try different possible paths for sample-sales.csv
+        possible_paths = [
+            'sample-sales.csv',
+            os.path.join(os.path.dirname(__file__), 'sample-sales.csv'),
+            '/app/sample-sales.csv'
+        ]
+
+        sales_df = None
+        for path in possible_paths:
+            try:
+                if os.path.exists(path):
+                    sales_df = pd.read_csv(path)
+                    logger.info(f"Loaded sales data from {path} with {len(sales_df)} rows")
+                    break
+            except Exception as e:
+                logger.warning(f"Failed to load from {path}: {str(e)}")
+                continue
+
+        if sales_df is None:
+            logger.error("Could not find sample-sales.csv file")
+            return {"error": "sample-sales.csv file not found"}
+
+        # Perform sales analysis
+        sales_results = data_analysis.analyze_sales(sales_df)
+
+        if not sales_results:
+            logger.error("Sales analysis failed")
+            return {"error": "Sales analysis failed"}
+
+        # Create visualizations
+        sales_bar_chart = data_visualization.create_sales_bar_chart(sales_results['region_sales'])
+        cumulative_sales_chart = data_visualization.create_cumulative_sales_chart(sales_results['data'])
+
+        # Return results in expected format
+        return {
+            "total_sales": sales_results['total_sales'],
+            "top_region": sales_results['top_region'],
+            "day_sales_correlation": sales_results['day_sales_correlation'],
+            "median_sales": sales_results['median_sales'],
+            "total_sales_tax": sales_results['total_sales_tax'],
+            "sales_bar_chart": sales_bar_chart.replace("data:image/png;base64,", ""),
+            "cumulative_sales_chart": cumulative_sales_chart.replace("data:image/png;base64,", "")
+        }
+
+    except Exception as e:
+        logger.error(f"Error in sales analysis: {str(e)}")
+        return {"error": f"Sales analysis failed: {str(e)}"}
+
+def handle_weather_questions(question_data, uploaded_files):
+    """Handle weather analysis questions"""
+
+    try:
+        # Load sample-weather.csv file
+        import pandas as pd
+        import os
+
+        # Try different possible paths for sample-weather.csv
+        possible_paths = [
+            'sample-weather.csv',
+            os.path.join(os.path.dirname(__file__), 'sample-weather.csv'),
+            '/app/sample-weather.csv'
+        ]
+
+        weather_df = None
+        for path in possible_paths:
+            try:
+                if os.path.exists(path):
+                    weather_df = pd.read_csv(path)
+                    logger.info(f"Loaded weather data from {path} with {len(weather_df)} rows")
+                    break
+            except Exception as e:
+                logger.warning(f"Failed to load from {path}: {str(e)}")
+                continue
+
+        if weather_df is None:
+            logger.error("Could not find sample-weather.csv file")
+            return {"error": "sample-weather.csv file not found"}
+
+        # Perform weather analysis
+        weather_results = data_analysis.analyze_weather(weather_df)
+
+        if not weather_results:
+            logger.error("Weather analysis failed")
+            return {"error": "Weather analysis failed"}
+
+        # Create visualizations
+        temperature_chart = data_visualization.create_temperature_line_chart(weather_results['data'])
+        precip_histogram = data_visualization.create_precipitation_histogram(weather_results['data'])
+
+        # Return results in expected format
+        return {
+            "average_temp_c": weather_results['average_temp_c'],
+            "max_precip_date": weather_results['max_precip_date'],
+            "min_temp_c": weather_results['min_temp_c'],
+            "temp_precip_correlation": weather_results['temp_precip_correlation'],
+            "average_precip_mm": weather_results['average_precip_mm'],
+            "temperature_chart": temperature_chart.replace("data:image/png;base64,", ""),
+            "precip_histogram": precip_histogram.replace("data:image/png;base64,", "")
+        }
+
+    except Exception as e:
+        logger.error(f"Error in weather analysis: {str(e)}")
+        return {"error": f"Weather analysis failed: {str(e)}"}
 
 def handle_file_analysis(question_data, uploaded_files):
     """Handle analysis of uploaded files"""
